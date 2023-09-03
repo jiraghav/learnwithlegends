@@ -43,6 +43,14 @@ class UserWithdrawalMethod extends Eloquent
 				'email_address' => 'Email Address'
 			],
 		],
+		'perawallet' => [
+			'name' => 'Pera Wallet',
+			'class' => 'Paypal',
+			'view' => 'withdrawal_methods/perawallet',
+			'display' => [
+				'email_address' => 'Email Address'
+			],
+		],
 
 		/* 
 		'skrill'=> [

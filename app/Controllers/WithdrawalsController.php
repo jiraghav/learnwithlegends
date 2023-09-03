@@ -214,10 +214,7 @@ class WithdrawalsController extends controller
 
         $auth = $this->auth();
 
-
-
-
-
+        $method_details = UserWithdrawalMethod::where('id', $_POST['method'])->where('user_id', $auth->id)->first();
 
         $rules_settings =  SiteSettings::find_criteria('rules_settings');
         $min_withdrawal_usd = $rules_settings->settingsArray['min_withdrawal_usd'];
@@ -230,7 +227,7 @@ class WithdrawalsController extends controller
             'amount' => [
                 'required' => true,
                 'positive' => true,
-                'min_value' => $min_withdrawal_usd,
+                'min_value' => $method_details->method == 'paypal' ? $min_withdrawal_usd : 1,
             ],
         ));
 
@@ -240,13 +237,14 @@ class WithdrawalsController extends controller
             Redirect::back();
         }
 
-        $this->verify_2fa();
+        if ($method_details->method == 'paypal') {
+          $this->verify_2fa();
+        }
 
 
         $amount_requested = $_POST['amount'];
 
         //ensure method exists and belongs to user
-        $method_details = UserWithdrawalMethod::where('id', $_POST['method'])->where('user_id', $auth->id)->first();
         $method_details->details = $method_details->details_array;
 
         if ($method_details == null) {
@@ -322,9 +320,9 @@ class WithdrawalsController extends controller
             Redirect::back();
         }
 
-
-        $this->verify_2fa();
-
+        if (isset($_POST['details']['email_address'])) {
+          $this->verify_2fa();
+        }
 
         $available_methods = UserWithdrawalMethod::$method_options;
         $decoded_method = MIS::dec_enc('decrypt', $_POST['method']);

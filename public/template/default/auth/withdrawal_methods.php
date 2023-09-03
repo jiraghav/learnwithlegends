@@ -64,7 +64,7 @@ include 'includes/header.php';
 
                                             $this->view($option['view'], [], true, true);; ?>
 
-                                            <?= $this->use_2fa_protection(); ?>
+                                            <?= $key == 'paypal' ? $this->use_2fa_protection() : '' ?>
 
 
 
