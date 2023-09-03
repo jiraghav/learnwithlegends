@@ -1,0 +1,11 @@
+
+.env
+.htaccess
+.cpanel.yml
+.env
+.idea/workspace.xml
+*.iml
+*.phpintel
+
+public/uploads/
+public/wp/
