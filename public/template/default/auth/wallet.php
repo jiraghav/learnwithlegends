@@ -188,6 +188,10 @@ include 'includes/header.php';
                               </div>
                           <?php endif; ?>
                         </div>
+                        
+                        <div class="paypal-withdrawal-comming-soon d-none">
+                          <h3 class="text-center">Paypal withdrawal comming soon!</h3>
+                        </div>
 
                         <div class="form-group">
                           <button type="submit" class="btn btn-outline-dark withdrawal-submit-btn d-none">Submit</button>
@@ -369,18 +373,19 @@ include 'includes/header.php';
         $('.withdrawal-method').change(function () {
           var withdrawalMethod = $(this).find(":selected").data('method-name');
           
-          $('.withdrawal-amount,.paypal-withdrawal,.withdrawal-fee,.withdrawal-submit-btn').addClass('d-none');
+          $('.withdrawal-amount,.paypal-withdrawal,.withdrawal-fee,.withdrawal-submit-btn,.paypal-withdrawal-comming-soon').addClass('d-none');
 
           if (withdrawalMethod == 'perawallet') {
             $('.withdrawal-amount,.withdrawal-submit-btn').removeClass('d-none');
             $('.withdrawal-amount-input').attr("min", 1);
           } else if (withdrawalMethod == 'paypal') {
-            $('.paypal-withdrawal,.withdrawal-fee').removeClass('d-none');
-            
-            if ($('.has-balence-to-withdrawal').length) {
-              $('.withdrawal-amount,.withdrawal-submit-btn').removeClass('d-none');
-            }
-            $('.withdrawal-amount-input').attr('min', $('.withdrawal-amount-input').data('minimum'));
+            // $('.paypal-withdrawal,.withdrawal-fee').removeClass('d-none');
+            // 
+            // if ($('.has-balence-to-withdrawal').length) {
+            //   $('.withdrawal-amount,.withdrawal-submit-btn').removeClass('d-none');
+            // }
+            // $('.withdrawal-amount-input').attr('min', $('.withdrawal-amount-input').data('minimum'));
+            $('.paypal-withdrawal-comming-soon').removeClass('d-none');
           }
         });
     </script>
