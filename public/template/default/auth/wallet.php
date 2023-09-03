@@ -190,7 +190,7 @@ include 'includes/header.php';
                         </div>
                         
                         <div class="paypal-withdrawal-comming-soon d-none">
-                          <h3 class="text-center">Paypal withdrawal comming soon!</h3>
+                          <h3 class="text-center">PayPal withdrawal coming post beta</h3>
                         </div>
 
                         <div class="form-group">
