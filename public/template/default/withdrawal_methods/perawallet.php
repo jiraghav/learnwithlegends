@@ -5,5 +5,5 @@
 ;?>
 <div class="form-group">
   <label>Pera Wallet Address</label>
-  <input type="" placeholder="Enter Pera Wallet Address" value="<?=$perawalletDetail['perawallet_address'] ?? '';?>" name="details[perawallet_address]" required="" class="form-control">
+  <input type="" placeholder="Add Pera Wallet Address" value="<?=$perawalletDetail['perawallet_address'] ?? '';?>" name="details[perawallet_address]" required="" class="form-control">
 </div>

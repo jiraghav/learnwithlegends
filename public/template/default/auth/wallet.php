@@ -145,7 +145,7 @@ include 'includes/header.php';
 
 
                     <div class="">
-                      <form class="col-12 ajax_form" method="POST" action="<?= domain; ?>/withdrawals/submit_withdrawal_request">
+                      <form class="col-12 ajax_form reload_on_success" method="POST" action="<?= domain; ?>/withdrawals/submit_withdrawal_request">
                         
                         <?= $this->csrf_field(); ?>
                         
@@ -189,7 +189,7 @@ include 'includes/header.php';
                           <?php endif; ?>
                         </div>
                         
-                        <div class="paypal-withdrawal-comming-soon d-none">
+                        <div class="paypal-withdrawal-coming-soon d-none">
                           <h3 class="text-center">PayPal withdrawal coming post beta</h3>
                         </div>
 
@@ -373,7 +373,7 @@ include 'includes/header.php';
         $('.withdrawal-method').change(function () {
           var withdrawalMethod = $(this).find(":selected").data('method-name');
           
-          $('.withdrawal-amount,.paypal-withdrawal,.withdrawal-fee,.withdrawal-submit-btn,.paypal-withdrawal-comming-soon').addClass('d-none');
+          $('.withdrawal-amount,.paypal-withdrawal,.withdrawal-fee,.withdrawal-submit-btn,.paypal-withdrawal-coming-soon').addClass('d-none');
 
           if (withdrawalMethod == 'perawallet') {
             $('.withdrawal-amount,.withdrawal-submit-btn').removeClass('d-none');
@@ -385,7 +385,7 @@ include 'includes/header.php';
             //   $('.withdrawal-amount,.withdrawal-submit-btn').removeClass('d-none');
             // }
             // $('.withdrawal-amount-input').attr('min', $('.withdrawal-amount-input').data('minimum'));
-            $('.paypal-withdrawal-comming-soon').removeClass('d-none');
+            $('.paypal-withdrawal-coming-soon').removeClass('d-none');
           }
         });
     </script>

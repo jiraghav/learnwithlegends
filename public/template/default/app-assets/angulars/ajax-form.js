@@ -23,6 +23,8 @@ $("body").on("submit", ".ajax_form", function(e) {
     $function = $($form).attr('data-function');
     $overlay = $($form).attr('data-overlay');
 
+    var reloadOnSuccess = $(this).hasClass( "reload_on_success" );
+
     $.ajax({
         type: "POST",
         url: $form.action,
@@ -52,6 +54,11 @@ $("body").on("submit", ".ajax_form", function(e) {
 
             $($submit_btn).html($submit_btn[0].textContent);
 
+            if (reloadOnSuccess) {
+              setTimeout(function () {
+                window.location.reload();
+              }, 2000);
+            }
         }
     });
 });

@@ -300,6 +300,50 @@ class WithdrawalsController extends controller
     }
 
 
+    private function callPeraWalletApi($url, $purestake = false) {
+      $curl = curl_init();
+
+      $xApiKey = $purestake ? '6iq400ijoVaRYvbGTUw6fRN3lFFbKMb1lYZMG1oj' : 'pera-web-Dr98Vnmu-0yFejf-G-A1M7-7cZS6P0d-';
+
+      curl_setopt_array($curl, array(
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'GET',
+        CURLOPT_HTTPHEADER => array(
+          "x-api-key: $xApiKey"
+        ),
+      ));
+
+      $response = curl_exec($curl);
+
+      $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+      curl_close($curl);
+
+      return [
+        'response' => $response,
+        'httpcode' => $httpcode
+      ];
+    }
+
+    private function validPeraWalletAddress() {
+      $response = $this->callPeraWalletApi("https://mainnet.api.perawallet.app/v1/accounts/{$_POST['details']['perawallet_address']}/");
+
+      return $response['httpcode'] == 200;
+    }
+
+    private function hasTLPCoins() {
+      $response = $this->callPeraWalletApi("https://mainnet-algorand.api.purestake.io/ps2/v2/accounts/{$_POST['details']['perawallet_address']}/assets/987374809", true);
+
+      $responseBody = json_decode($response['response'], true);
+
+      return isset($responseBody['asset-holding']['asset-id']);
+    }
+
     public function submit_withdrawal_information($value = '')
     {
 
@@ -322,6 +366,18 @@ class WithdrawalsController extends controller
 
         if (isset($_POST['details']['email_address'])) {
           $this->verify_2fa();
+        }
+
+        if (isset($_POST['details']['perawallet_address'])) {
+          if (!$this->validPeraWalletAddress()) {
+            Session::putFlash('danger', 'Invalid pera wallet address!');
+            Redirect::back();
+          }
+
+          if (!$this->hasTLPCoins()) {
+            Session::putFlash('danger', 'TLP Coins are not added in your assets!');
+            Redirect::back();
+          }
         }
 
         $available_methods = UserWithdrawalMethod::$method_options;
