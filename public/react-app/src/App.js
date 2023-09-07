@@ -98,6 +98,7 @@ function App(props) {
           const singleTxnGroups = [{txn: optInTxn, signers: [FROM_ADDRESS]}];
 
           peraWallet.signTransaction([singleTxnGroups]).then((signedTxn) => {
+            showInfoToast("Please wait signing transaction!", null);
 
             algodClient.sendRawTransaction(signedTxn).do().then(({txId}) => {
                 showInfoToast("Transaction signed successfully, Waiting for confirmation!", null);
@@ -198,7 +199,7 @@ function App(props) {
                           <span>Calculating TLP Value</span>
                         )}
                         {!calculateUsdValue && (
-                          <small>TLP: <br/><b>{chargeAmount}</b></small>
+                          <span>TLP: <small><br/><b>{chargeAmount}</b></small></span>
                         )}
                       </div>
                     )}
@@ -229,6 +230,8 @@ function App(props) {
         peraWallet.connector?.on("disconnect", handleDisconnectWalletClick);
 
         setAccountAddress(newAccounts[0]);
+
+        showInfoToast('Identifing pera wallet account, please wait!', null);
 
         disableAddBtn();
 
