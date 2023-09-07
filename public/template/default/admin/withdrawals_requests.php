@@ -70,9 +70,23 @@ use v2\Models\Wallet\ChartOfAccount;
                                                 <!-- <a class="btn btn-outline-dark" href="<?= domain ?>/admin/view_journal/<?= $journal->id; ?>">View</a> -->
 
                                                 <?php if ($journal->is_pending()) : ?>
-                                                    <a class="btn btn-outline-dark" onclick="$confirm_dialog = new ConfirmationDialog('<?= domain ?>/admin/complete_journal/<?= $journal->id; ?>', 
-                                                    'Complete withdrawal#<?= $journal->id; ?> ?')">Complete</a>
-
+                                                    <?php
+                                                        $peraWalletAddress = $journal->details['withdrawal_method']['details']['perawallet_address'] ?? null;
+                                                        if (!empty($peraWalletAddress)) {
+                                                    ?>
+                                                        <a class="btn btn-outline-dark perawallet-transfer-now"
+                                                           data-wallet-address="<?= $peraWalletAddress; ?>"
+                                                           data-dollar-amount="<?= $journal->payablesDetails['amount'] ?>"
+                                                           data-confirm-transfer-url="<?= domain ?>/admin/complete_journal/<?= $journal->id; ?>"
+                                                           onclick="openTransferModal(event)">Transfer now</a>
+                                                    <?php
+                                                        } else {
+                                                    ?>
+                                                        <a class="btn btn-outline-dark" onclick="$confirm_dialog = new ConfirmationDialog('<?= domain ?>/admin/complete_journal/<?= $journal->id; ?>', 
+                                                        'Complete withdrawal#<?= $journal->id; ?> ?')">Complete</a>
+                                                    <?php
+                                                      }
+                                                    ?>
                                                     <a class="btn btn-outline-dark" onclick="$confirm_dialog = new ConfirmationDialog('<?= domain ?>/admin/decline_journal/<?= $journal->id; ?>', 'Decline journal?')">Decline</a>
                                                 <?php endif; ?>
 
@@ -109,5 +123,40 @@ use v2\Models\Wallet\ChartOfAccount;
 
 
 <div id="new_category_app"></div>
+<style>
+  .perawallet-transfer-now {
+    width: 100px;
+  }
+</style>
+
+<script>
+function openTransferModal(event) {
+		var walletAddress = event.target.getAttribute("data-wallet-address");
+		var dollarAmount = event.target.getAttribute("data-dollar-amount");
+		var confirmTransferUrl = event.target.getAttribute("data-confirm-transfer-url");
+
+		jQuery('#react-app').remove();
+		jQuery(`body`).append(`<div id="react-app" wallet-address="${walletAddress}" dollar-amount="${dollarAmount}" confirm-transfer-url="${confirmTransferUrl}"></div>`);
+
+		setTimeout(function () {
+			initReact();
+
+			setTimeout(function () {
+				jQuery('#transferTLPModal').modal('show');
+			}, 200);
+		}, 200);
+	}
+</script>
+
+<?php
+  $debug = false;
+  if (!$debug) { // run npm build for production build and move to below path
+?>
+    <script defer="defer" src="/template/default/app-assets/js/tlp-transfer.min.js"></script>
+<?php
+  } else { // run npm start for debug
+?>
+    <script defer="defer" src="http://localhost:3000/static/js/bundle.js"></script>
+<?php } ?>
 
 <?php include 'includes/footer.php'; ?>

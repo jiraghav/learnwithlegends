@@ -377,7 +377,9 @@ include 'includes/header.php';
 
           if (withdrawalMethod == 'perawallet') {
             $('.withdrawal-amount,.withdrawal-submit-btn').removeClass('d-none');
-            $('.withdrawal-amount-input').attr("min", 1);
+            var max = $('.withdrawal-amount-input').attr('max');
+            $('.withdrawal-amount-input').attr("min", max > 1 ? 1 : max);
+            $('.withdrawal-amount-input').focus();
           } else if (withdrawalMethod == 'paypal') {
             // $('.paypal-withdrawal,.withdrawal-fee').removeClass('d-none');
             // 
