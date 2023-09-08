@@ -48,13 +48,14 @@ $("body").on("submit", ".ajax_form", function(e) {
         error: function(data) {
             $($submit_btn).attr("disabled", false);
         },
-        complete: function() {
+        complete: function(data) {
+            var response = JSON.parse(data.responseText);
             $("#page_preloader").css('display', 'none');
             $($submit_btn).attr("disabled", false);
 
             $($submit_btn).html($submit_btn[0].textContent);
 
-            if (reloadOnSuccess) {
+            if (reloadOnSuccess && response.status) {
               setTimeout(function () {
                 window.location.reload();
               }, 2000);

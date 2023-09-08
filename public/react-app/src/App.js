@@ -42,7 +42,7 @@ function App(props) {
   function getUnitAssetValue() {
     setCalculateUsdValue(true);
     getAssetPriceUsd().then((assetUsdValue) => {
-      setChargeAmount((1/assetUsdValue) * dollarAmount);
+      setChargeAmount(((1/assetUsdValue) * dollarAmount).toFixed(4));
       setCalculateUsdValue(false);
     }).catch((error) => {
         showFailedToast("TLP price fetching failed!");

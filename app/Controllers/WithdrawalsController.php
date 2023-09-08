@@ -208,10 +208,6 @@ class WithdrawalsController extends controller
 
     public function submit_withdrawal_request()
     {
-
-        echo "<pre>";
-        print_r($_POST);
-
         $auth = $this->auth();
 
         $method_details = UserWithdrawalMethod::where('id', $_POST['method'])->where('user_id', $auth->id)->first();
@@ -257,6 +253,8 @@ class WithdrawalsController extends controller
 
         DB::beginTransaction();
 
+        $status = false;
+
         try {
 
             $withdrawal_account = $auth->getAccount('default');
@@ -274,7 +272,7 @@ class WithdrawalsController extends controller
 
             $request->updateDetailsByKey('withdrawal_method', ($method_details->toArray()));
 
-            $withdrawal_fee = $rules['withdrawal_fee_percent'] * 0.01 * $amount_requested;
+            $withdrawal_fee = $method_details->method == 'paypal' ? $rules['withdrawal_fee_percent'] * 0.01 * $amount_requested : 0;
             $payable = $amount_requested - $withdrawal_fee;
 
             $payables = [
@@ -291,12 +289,17 @@ class WithdrawalsController extends controller
 
             DB::commit();
             Session::putFlash('success', "Withdrawal initiated successfully");
+            $status = true;
         } catch (Exception $e) {
             DB::rollback();
             Session::putFlash('danger', "Something went wrong. Please try again.");
+
         }
 
-        Redirect::back();
+        echo json_encode([
+            'status' => $status
+        ]);
+        // Redirect::back();
     }
 
 
