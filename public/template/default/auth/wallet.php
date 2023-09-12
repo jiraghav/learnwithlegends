@@ -154,7 +154,7 @@ include 'includes/header.php';
                           <select class="form-control withdrawal-method" required="" name="method">
                             <option value="">Select Payment method</option>
                             <?php foreach (v2\Models\UserWithdrawalMethod::ForUser($auth->id)->get() as $key => $option) : ?>
-                              <option value="<?= $option->id; ?>" data-method-name="<?= $option['method'] ?>"><?= v2\Models\UserWithdrawalMethod::$method_options[$option['method']]['name']; ?></option>
+                              <option value="<?= $option->id; ?>" data-method-name="<?= $option['method'] ?>"><?= v2\Models\UserWithdrawalMethod::$method_options[$option['method']]['label']; ?></option>
                             <?php endforeach; ?>
                           </select>
                         </div>
