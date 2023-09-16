@@ -45,8 +45,6 @@ class controller extends operations
 			$this->verify_2fa_only();
 		} else {
 
-			print_r($_SESSION['twofa']);
-
 			$this->validator()->check(Input::all(), array(
 
 				'email_code' => [

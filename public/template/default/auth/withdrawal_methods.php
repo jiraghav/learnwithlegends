@@ -54,7 +54,7 @@ include 'includes/header.php';
                                     </div>
                                     <div class="card-body  collapse show" id="make_deposit<?= $option['name']; ?>">
 
-                                        <form class="col-12 ajax_form" method="POST" action="<?= domain; ?>/withdrawals/submit_withdrawal_information">
+                                        <form class="col-12 ajax_form reload_on_success" method="POST" action="<?= domain; ?>/withdrawals/submit_withdrawal_information">
 
                                             <input type="hidden" name="method" value="<?= MIS::dec_enc('encrypt', $key); ?>">
 
@@ -64,7 +64,7 @@ include 'includes/header.php';
 
                                             $this->view($option['view'], [], true, true);; ?>
 
-                                            <?= $key == 'paypal' ? $this->use_2fa_protection() : '' ?>
+                                            <?= $this->use_2fa_protection() ?>
 
 
 

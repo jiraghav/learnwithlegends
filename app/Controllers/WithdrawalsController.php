@@ -367,10 +367,6 @@ class WithdrawalsController extends controller
             Redirect::back();
         }
 
-        if (isset($_POST['details']['email_address'])) {
-          $this->verify_2fa();
-        }
-
         if (isset($_POST['details']['perawallet_address'])) {
           if (!$this->validPeraWalletAddress()) {
             Session::putFlash('danger', 'Invalid pera wallet address!');
@@ -382,6 +378,8 @@ class WithdrawalsController extends controller
             Redirect::back();
           }
         }
+        
+        $this->verify_2fa();
 
         $available_methods = UserWithdrawalMethod::$method_options;
         $decoded_method = MIS::dec_enc('decrypt', $_POST['method']);
@@ -394,7 +392,7 @@ class WithdrawalsController extends controller
         $option = $available_methods[$decoded_method];
 
         DB::beginTransaction();
-
+        $status = false;
         try {
 
             $user_withdrawal = UserWithdrawalMethod::updateOrCreate(
@@ -409,7 +407,7 @@ class WithdrawalsController extends controller
 
             DB::commit();
             Session::putFlash('success', "$option[name] changes saved");
-
+            $status = true;
             $withdrawal_method = $user_withdrawal;
             $user = $auth;
             // SendEmailForWithdrawalInformationUpdate::dispatch(compact('user', 'withdrawal_method'));
@@ -418,7 +416,9 @@ class WithdrawalsController extends controller
             Session::putFlash('success', "Something went wrong. Please try again.");
         }
 
-
-        Redirect::back();
+        echo json_encode([
+            'status' => $status
+        ]);
+        // Redirect::back();
     }
 }
