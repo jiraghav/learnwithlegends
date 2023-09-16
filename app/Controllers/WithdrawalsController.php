@@ -208,16 +208,9 @@ class WithdrawalsController extends controller
 
     public function submit_withdrawal_request()
     {
-
-        echo "<pre>";
-        print_r($_POST);
-
         $auth = $this->auth();
 
-
-
-
-
+        $method_details = UserWithdrawalMethod::where('id', $_POST['method'])->where('user_id', $auth->id)->first();
 
         $rules_settings =  SiteSettings::find_criteria('rules_settings');
         $min_withdrawal_usd = $rules_settings->settingsArray['min_withdrawal_usd'];
@@ -230,7 +223,7 @@ class WithdrawalsController extends controller
             'amount' => [
                 'required' => true,
                 'positive' => true,
-                'min_value' => $min_withdrawal_usd,
+                'min_value' => $method_details->method == 'paypal' ? $min_withdrawal_usd : 1,
             ],
         ));
 
@@ -240,13 +233,14 @@ class WithdrawalsController extends controller
             Redirect::back();
         }
 
-        $this->verify_2fa();
+        if ($method_details->method == 'paypal') {
+          $this->verify_2fa();
+        }
 
 
         $amount_requested = $_POST['amount'];
 
         //ensure method exists and belongs to user
-        $method_details = UserWithdrawalMethod::where('id', $_POST['method'])->where('user_id', $auth->id)->first();
         $method_details->details = $method_details->details_array;
 
         if ($method_details == null) {
@@ -258,6 +252,8 @@ class WithdrawalsController extends controller
         $rules = SiteSettings::find_criteria('rules_settings')->settingsArray;
 
         DB::beginTransaction();
+
+        $status = false;
 
         try {
 
@@ -276,7 +272,7 @@ class WithdrawalsController extends controller
 
             $request->updateDetailsByKey('withdrawal_method', ($method_details->toArray()));
 
-            $withdrawal_fee = $rules['withdrawal_fee_percent'] * 0.01 * $amount_requested;
+            $withdrawal_fee = $method_details->method == 'paypal' ? $rules['withdrawal_fee_percent'] * 0.01 * $amount_requested : 0;
             $payable = $amount_requested - $withdrawal_fee;
 
             $payables = [
@@ -293,14 +289,63 @@ class WithdrawalsController extends controller
 
             DB::commit();
             Session::putFlash('success', "Withdrawal initiated successfully");
+            $status = true;
         } catch (Exception $e) {
             DB::rollback();
             Session::putFlash('danger', "Something went wrong. Please try again.");
+
         }
 
-        Redirect::back();
+        echo json_encode([
+            'status' => $status
+        ]);
+        // Redirect::back();
     }
 
+
+    private function callPeraWalletApi($url, $purestake = false) {
+      $curl = curl_init();
+
+      $xApiKey = $purestake ? '6iq400ijoVaRYvbGTUw6fRN3lFFbKMb1lYZMG1oj' : 'pera-web-Dr98Vnmu-0yFejf-G-A1M7-7cZS6P0d-';
+
+      curl_setopt_array($curl, array(
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'GET',
+        CURLOPT_HTTPHEADER => array(
+          "x-api-key: $xApiKey"
+        ),
+      ));
+
+      $response = curl_exec($curl);
+
+      $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+      curl_close($curl);
+
+      return [
+        'response' => $response,
+        'httpcode' => $httpcode
+      ];
+    }
+
+    private function validPeraWalletAddress() {
+      $response = $this->callPeraWalletApi("https://mainnet.api.perawallet.app/v1/accounts/{$_POST['details']['perawallet_address']}/");
+
+      return $response['httpcode'] == 200;
+    }
+
+    private function hasTLPCoins() {
+      $response = $this->callPeraWalletApi("https://mainnet-algorand.api.purestake.io/ps2/v2/accounts/{$_POST['details']['perawallet_address']}/assets/987374809", true);
+
+      $responseBody = json_decode($response['response'], true);
+
+      return isset($responseBody['asset-holding']['asset-id']);
+    }
 
     public function submit_withdrawal_information($value = '')
     {
@@ -322,9 +367,19 @@ class WithdrawalsController extends controller
             Redirect::back();
         }
 
+        if (isset($_POST['details']['perawallet_address'])) {
+          if (!$this->validPeraWalletAddress()) {
+            Session::putFlash('danger', 'Invalid pera wallet address!');
+            Redirect::back();
+          }
 
+          if (!$this->hasTLPCoins()) {
+            Session::putFlash('danger', 'TLP Coins are not added in your assets!');
+            Redirect::back();
+          }
+        }
+        
         $this->verify_2fa();
-
 
         $available_methods = UserWithdrawalMethod::$method_options;
         $decoded_method = MIS::dec_enc('decrypt', $_POST['method']);
@@ -337,7 +392,7 @@ class WithdrawalsController extends controller
         $option = $available_methods[$decoded_method];
 
         DB::beginTransaction();
-
+        $status = false;
         try {
 
             $user_withdrawal = UserWithdrawalMethod::updateOrCreate(
@@ -352,7 +407,7 @@ class WithdrawalsController extends controller
 
             DB::commit();
             Session::putFlash('success', "$option[name] changes saved");
-
+            $status = true;
             $withdrawal_method = $user_withdrawal;
             $user = $auth;
             // SendEmailForWithdrawalInformationUpdate::dispatch(compact('user', 'withdrawal_method'));
@@ -361,7 +416,9 @@ class WithdrawalsController extends controller
             Session::putFlash('success', "Something went wrong. Please try again.");
         }
 
-
-        Redirect::back();
+        echo json_encode([
+            'status' => $status
+        ]);
+        // Redirect::back();
     }
 }

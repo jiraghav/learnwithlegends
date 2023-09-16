@@ -145,60 +145,60 @@ include 'includes/header.php';
 
 
                     <div class="">
-                        <div class="col-12">
+                      <form class="col-12 ajax_form reload_on_success" method="POST" action="<?= domain; ?>/withdrawals/submit_withdrawal_request">
+                        
+                        <?= $this->csrf_field(); ?>
+                        
+                        <div class="form-group">
+                          <label>Select Method</label> <small><a href="<?= domain; ?>/user/withdrawal-methods">Add withdrawal method</a></small>
+                          <select class="form-control withdrawal-method" required="" name="method">
+                            <option value="">Select Payment method</option>
+                            <?php foreach (v2\Models\UserWithdrawalMethod::ForUser($auth->id)->get() as $key => $option) : ?>
+                              <option value="<?= $option->id; ?>" data-method-name="<?= $option['method'] ?>"><?= v2\Models\UserWithdrawalMethod::$method_options[$option['method']]['label']; ?></option>
+                            <?php endforeach; ?>
+                          </select>
+                        </div>
+
+                        <div class="withdrawal-fee d-none">
                             <small>Withdrawal Fee: <?= $withdrawal_fee_percent; ?>% </small><br>
                             <small>Minimum Withdrawal: <?= $currency; ?><?= MIS::money_format($min_withdrawal_usd); ?></small><br>
                             <hr>
                         </div>
-                        <?php if ($balance['account_currency']['available_balance'] >= $min_withdrawal_usd) : ?>
 
-                            <form class="col-12 ajax_form" method="POST" action="<?= domain; ?>/withdrawals/submit_withdrawal_request">
+                        <div class="form-group withdrawal-amount d-none">
+                          <label>Amount (<?= $currency; ?>)</label>
+                          <input type="number"
+                                 step="1"
+                                 min="<?= $min_withdrawal_usd; ?>"
+                                 data-minimum="<?= $min_withdrawal_usd; ?>"
+                                 max="<?= $balance['account_currency']['available_balance']; ?>"
+                                 name="amount"
+                                 required
+                                 class="form-control withdrawal-amount-input">
+                        </div>
 
+                        <div class="paypal-withdrawal d-none <?= $balance['account_currency']['available_balance'] >= $min_withdrawal_usd ? 'has-balence-to-withdrawal' : '' ?>">
+                          <?php if ($balance['account_currency']['available_balance'] >= $min_withdrawal_usd) : ?>
+                              <?= $this->use_2fa_protection(); ?>
+                          <?php else : ?>
+                              <div class="col-12">
+                                  <center>
+                                      <p>You need <?= $currency; ?><?= MIS::money_format($min_withdrawal_usd); ?> at least to be able to request a withdrawal.</p>
+                                  </center>
+                              </div>
+                          <?php endif; ?>
+                        </div>
+                        
+                        <div class="paypal-withdrawal-coming-soon d-none">
+                          <h3 class="text-center">PayPal withdrawal coming post beta</h3>
+                        </div>
 
-                                <?= $this->csrf_field(); ?>
+                        <div class="form-group">
+                          <button type="submit" class="btn btn-outline-dark withdrawal-submit-btn d-none">Submit</button>
+                        </div>
 
-                                <div class="form-group">
-                                    <label>Amount (<?= $currency; ?>)</label>
-                                    <input type="number" step="1" min="<?= $min_withdrawal_usd; ?>" max="<?= $balance['account_currency']['available_balance']; ?>" name="amount" required="" class="form-control">
-                                </div>
-
-
-                                <div class="form-group">
-                                    <label>Select Method</label> <small><a href="<?= domain; ?>/user/withdrawal-methods">Add withdrawal method</a></small>
-                                    <select class="form-control" required="" name="method">
-                                        <option value="">Select Payment method</option>
-                                        <?php foreach (v2\Models\UserWithdrawalMethod::ForUser($auth->id)->get() as $key => $option) : ?>
-                                            <option value="<?= $option->id; ?>"><?= v2\Models\UserWithdrawalMethod::$method_options[$option['method']]['name']; ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-
-
-                                <?= $this->use_2fa_protection(); ?>
-
-
-                                <div class="form-group">
-                                    <button type="submit" class="btn btn-outline-dark">Submit</button>
-                                </div>
-
-                            </form>
-
-                        <?php else : ?>
-
-                            <div class="col-12">
-
-                                <center>
-                                    <p>You need <?= $currency; ?><?= MIS::money_format($min_withdrawal_usd); ?> at least to be able to request a withdrawal.</p>
-                                </center>
-                            </div>
-
-
-                        <?php endif; ?>
-
+                      </form>
                     </div>
-
-
-
                 </div>
 
             </div>
@@ -369,6 +369,27 @@ include 'includes/header.php';
                     break;
             }
         }
+        
+        $('.withdrawal-method').change(function () {
+          var withdrawalMethod = $(this).find(":selected").data('method-name');
+          
+          $('.withdrawal-amount,.paypal-withdrawal,.withdrawal-fee,.withdrawal-submit-btn,.paypal-withdrawal-coming-soon').addClass('d-none');
+
+          if (withdrawalMethod == 'perawallet') {
+            $('.withdrawal-amount,.withdrawal-submit-btn').removeClass('d-none');
+            var max = $('.withdrawal-amount-input').attr('max');
+            $('.withdrawal-amount-input').attr("min", max > 1 ? 1 : max);
+            $('.withdrawal-amount-input').focus();
+          } else if (withdrawalMethod == 'paypal') {
+            // $('.paypal-withdrawal,.withdrawal-fee').removeClass('d-none');
+            // 
+            // if ($('.has-balence-to-withdrawal').length) {
+            //   $('.withdrawal-amount,.withdrawal-submit-btn').removeClass('d-none');
+            // }
+            // $('.withdrawal-amount-input').attr('min', $('.withdrawal-amount-input').data('minimum'));
+            $('.paypal-withdrawal-coming-soon').removeClass('d-none');
+          }
+        });
     </script>
 
 

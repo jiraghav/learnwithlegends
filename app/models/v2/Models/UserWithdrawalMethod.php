@@ -36,10 +36,20 @@ class UserWithdrawalMethod extends Eloquent
 		], */
 		'paypal' => [
 			'name' => 'Paypal',
+			'label' => 'Paypal (coming on launch)',
 			'class' => 'Paypal',
 			'view' => 'withdrawal_methods/paypal',
 			'display' => [
 
+				'email_address' => 'Email Address'
+			],
+		],
+		'perawallet' => [
+			'name' 	=> 'Pera Wallet (TLP)',
+			'label' => 'TLP',
+			'class' => 'Paypal',
+			'view' => 'withdrawal_methods/perawallet',
+			'display' => [
 				'email_address' => 'Email Address'
 			],
 		],

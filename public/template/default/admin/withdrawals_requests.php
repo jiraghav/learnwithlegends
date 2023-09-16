@@ -70,9 +70,23 @@ use v2\Models\Wallet\ChartOfAccount;
                                                 <!-- <a class="btn btn-outline-dark" href="<?= domain ?>/admin/view_journal/<?= $journal->id; ?>">View</a> -->
 
                                                 <?php if ($journal->is_pending()) : ?>
-                                                    <a class="btn btn-outline-dark" onclick="$confirm_dialog = new ConfirmationDialog('<?= domain ?>/admin/complete_journal/<?= $journal->id; ?>', 
-                                                    'Complete withdrawal#<?= $journal->id; ?> ?')">Complete</a>
-
+                                                    <?php
+                                                        $peraWalletAddress = $journal->details['withdrawal_method']['details']['perawallet_address'] ?? null;
+                                                        if (!empty($peraWalletAddress)) {
+                                                    ?>
+                                                        <a class="btn btn-outline-dark perawallet-transfer-now"
+                                                           data-wallet-address="<?= $peraWalletAddress; ?>"
+                                                           data-dollar-amount="<?= $journal->payablesDetails['payable'] ?>"
+                                                           data-confirm-transfer-url="<?= domain ?>/admin/complete_journal/<?= $journal->id; ?>"
+                                                           onclick="openTransferModal(event)">Transfer now</a>
+                                                    <?php
+                                                        } else {
+                                                    ?>
+                                                        <a class="btn btn-outline-dark" onclick="$confirm_dialog = new ConfirmationDialog('<?= domain ?>/admin/complete_journal/<?= $journal->id; ?>', 
+                                                        'Complete withdrawal#<?= $journal->id; ?> ?')">Complete</a>
+                                                    <?php
+                                                      }
+                                                    ?>
                                                     <a class="btn btn-outline-dark" onclick="$confirm_dialog = new ConfirmationDialog('<?= domain ?>/admin/decline_journal/<?= $journal->id; ?>', 'Decline journal?')">Decline</a>
                                                 <?php endif; ?>
 
@@ -110,4 +124,5 @@ use v2\Models\Wallet\ChartOfAccount;
 
 <div id="new_category_app"></div>
 
+<?php include 'includes/perawallet.php'; ?>
 <?php include 'includes/footer.php'; ?>

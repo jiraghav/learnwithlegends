@@ -10,6 +10,9 @@
     display: none;
     padding: 5px 50px 5px 24px;
   }
+  .alert-dismissible .close {
+    padding: 5px 10px !important;
+  }
 </style>
 
 
@@ -79,7 +82,7 @@ font-size: 90px;">
   workjobs();
 
 
-  notify = function() {
+  notify = function($error_note = '', $error_type = '', $timeout = null) {
     $.ajax({
       type: "POST",
       url: '<?= domain; ?>' + "/home/flash_notification/",
@@ -87,8 +90,6 @@ font-size: 90px;">
       success: function(data) {
 
 
-        let $error_note = '';
-        let $error_type = '';
         for (var i = 0; i < data.length; i++) {
           $error_note += data[i]['message'] + '<br>';
           $error_type = data[i]['title'];
@@ -97,7 +98,7 @@ font-size: 90px;">
 
         if ($error_note != '') {
 
-          show_notification($error_note, $error_type);
+          show_notification($error_note, $error_type, $timeout);
         }
 
 
@@ -115,7 +116,7 @@ font-size: 90px;">
   }
 
 
-  show_notification = function($notification, $error_type = 'info') {
+  show_notification = function($notification, $error_type = 'info', $timeout = null) {
     $('#error_note').html($notification);
     $('#gitstar-notification').css('display', 'block');
 
@@ -126,6 +127,12 @@ font-size: 90px;">
       });
 
     document.getElementById('gitstar-notification').setAttribute("class", "alert alert-" + $error_type + " alert-dismissible");
+
+    if ($timeout) {
+      setTimeout(function () {
+        $('#gitstar-notification').css('display', 'none');
+      }, $timeout);
+    }
   }
 
   notify();
